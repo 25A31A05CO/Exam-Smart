@@ -144,9 +144,6 @@ Example response:
 }
 ```
 
-## Screenshots
-
-_Add screenshots of the admin panel and the student hall-ticket page here._
 
 ## Known limitations
 
@@ -165,4 +162,4 @@ _Add screenshots of the admin panel and the student hall-ticket page here._
 
 ## Author
 
-Built by Kalyan. GitHub: [kalyan405111](https://github.com/kalyan405111)
+Built by Kalyan. GitHub: https://github.com/25A31A05CO
