@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ExamSmart — Student Hall Ticket</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 30px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 4px;
+        font-size: 22px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 24px;
+    }
+    label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-top: 14px;
+    }
+    input {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    button {
+        width: 100%;
+        margin-top: 22px;
+        padding: 12px;
+        background: #2575fc;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    button:hover { background: #1a5edb; }
+
+    .ticket {
+        margin-top: 24px;
+        border: 2px dashed #2575fc;
+        border-radius: 10px;
+        padding: 18px;
+        display: none;
+    }
+    .ticket h2 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+        color: #2c3e50;
+        text-align: center;
+    }
+    .ticket-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+    }
+    .ticket-row span:first-child { color: #777; }
+    .ticket-row span:last-child { font-weight: 600; color: #222; }
+
+    .error-box {
+        margin-top: 18px;
+        background: #fdedec;
+        color: #922b21;
+        border: 1px solid #f5b7b1;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🎓 ExamSmart</h1>
+    <p class="subtitle">Enter your details to view your hall ticket</p>
+
+    <label>Institution Name</label>
+    <input type="text" id="inst-name" placeholder="e.g. Pragathi College">
+
+    <label>Full Name</label>
+    <input type="text" id="student-name" placeholder="e.g. Kalyan">
+
+    <label>Date of Birth</label>
+    <input type="date" id="student-dob">
+
+    <button onclick="lookupHallTicket()">View Hall Ticket</button>
+
+    <div class="error-box" id="error-box"></div>
+
+    <div class="ticket" id="ticket">
+        <h2>🎟️ Hall Ticket</h2>
+        <div class="ticket-row"><span>Student Name</span><span id="t-name"></span></div>
+        <div class="ticket-row"><span>Hall Ticket No.</span><span id="t-hallticket"></span></div>
+        <div class="ticket-row"><span>Exam</span><span id="t-exam"></span></div>
+        <div class="ticket-row"><span>Date</span><span id="t-date"></span></div>
+        <div class="ticket-row"><span>Time</span><span id="t-time"></span></div>
+        <div class="ticket-row"><span>Room</span><span id="t-room"></span></div>
+        <div class="ticket-row"><span>Seat No.</span><span id="t-seat"></span></div>
+    </div>
+</div>
+
+<script>
+const BASE_URL = "http://localhost:8080/api";
+
+async function lookupHallTicket() {
+    const institutionName = document.getElementById("inst-name").value.trim();
+    const name = document.getElementById("student-name").value.trim();
+    const dateOfBirth = document.getElementById("student-dob").value;
+
+    const errorBox = document.getElementById("error-box");
+    const ticket = document.getElementById("ticket");
+    errorBox.style.display = "none";
+    ticket.style.display = "none";
+
+    if (!institutionName || !name || !dateOfBirth) {
+        errorBox.textContent = "Please fill in all fields.";
+        errorBox.style.display = "block";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${BASE_URL}/hallticket/lookup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ institutionName, name, dateOfBirth })
+        });
+
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = text; }
+
+        if (!res.ok) {
+            errorBox.textContent = typeof data === "string" ? data : "No hall ticket found. Please check your details.";
+            errorBox.style.display = "block";
+            return;
+        }
+
+        document.getElementById("t-name").textContent = data.student.name;
+        document.getElementById("t-hallticket").textContent = data.student.hallTicketNumber;
+        document.getElementById("t-exam").textContent = data.exam.examName;
+        document.getElementById("t-date").textContent = data.exam.examDate;
+        document.getElementById("t-time").textContent = data.exam.examTime;
+        document.getElementById("t-room").textContent = data.room.roomNumber;
+        document.getElementById("t-seat").textContent = data.seatNumber;
+
+        ticket.style.display = "block";
+    } catch (e) {
+        errorBox.textContent = "Something went wrong. Is the backend server running?";
+        errorBox.style.display = "block";
+    }
+}
+</script>
+
+</body>
+</html>
