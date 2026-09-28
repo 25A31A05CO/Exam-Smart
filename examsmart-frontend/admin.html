@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ExamSmart — Admin Panel</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        color: #222;
+    }
+    h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+    }
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+    }
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .card h2 {
+        margin-top: 0;
+        font-size: 18px;
+        color: #2c3e50;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+    }
+    input, select {
+        width: 100%;
+        padding: 8px 10px;
+        margin-top: 4px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    button {
+        margin-top: 14px;
+        width: 100%;
+        padding: 10px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    button:hover { background: #1a252f; }
+    button.secondary { background: #3498db; }
+    button.secondary:hover { background: #2980b9; }
+    button.danger { background: #e67e22; }
+    button.danger:hover { background: #d35400; }
+    .result {
+        margin-top: 10px;
+        font-size: 13px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .result.success { background: #eafaf1; color: #196f3d; border: 1px solid #a9dfbf; }
+    .result.error { background: #fdedec; color: #922b21; border: 1px solid #f5b7b1; }
+    .full-width { grid-column: 1 / -1; }
+    .list-view {
+        max-height: 260px;
+        overflow-y: auto;
+        font-size: 13px;
+        background: #fafafa;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        padding: 8px;
+        margin-top: 10px;
+    }
+    .list-view table { width: 100%; border-collapse: collapse; }
+    .list-view th, .list-view td {
+        text-align: left;
+        padding: 4px 6px;
+        border-bottom: 1px solid #eee;
+    }
+</style>
+</head>
+<body>
+
+<h1>📋 ExamSmart — Admin Panel</h1>
+<p class="subtitle">Add institutions, students, rooms, and exams — then run seat allocation</p>
+
+<div class="container">
+
+    <!-- INSTITUTION -->
+    <div class="card">
+        <h2>🏫 Add Institution</h2>
+        <label>Institution Name</label>
+        <input type="text" id="inst-name" placeholder="e.g. Pragathi College">
+        <label>Type</label>
+        <input type="text" id="inst-type" placeholder="e.g. College">
+        <label>Code</label>
+        <input type="text" id="inst-code" placeholder="e.g. PC001">
+        <button onclick="addInstitution()">Add Institution</button>
+        <div id="inst-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- STUDENT -->
+    <div class="card">
+        <h2>🧑‍🎓 Add Student</h2>
+        <label>Institution ID</label>
+        <input type="number" id="student-inst-id" placeholder="e.g. 1">
+        <label>Name</label>
+        <input type="text" id="student-name" placeholder="e.g. Kalyan">
+        <label>Date of Birth</label>
+        <input type="date" id="student-dob">
+        <button onclick="addStudent()">Add Student</button>
+        <div id="student-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- ROOM -->
+    <div class="card">
+        <h2>🚪 Add Room</h2>
+        <label>Institution ID</label>
+        <input type="number" id="room-inst-id" placeholder="e.g. 1">
+        <label>Room Number</label>
+        <input type="text" id="room-number" placeholder="e.g. R101">
+        <label>Capacity</label>
+        <input type="number" id="room-capacity" placeholder="e.g. 30">
+        <button onclick="addRoom()">Add Room</button>
+        <div id="room-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- EXAM -->
+    <div class="card">
+        <h2>📝 Add Exam</h2>
+        <label>Exam Name</label>
+        <input type="text" id="exam-name" placeholder="e.g. Data Structures">
+        <label>Exam Date</label>
+        <input type="date" id="exam-date">
+        <label>Exam Time</label>
+        <input type="text" id="exam-time" placeholder="e.g. 10:00 AM">
+        <button onclick="addExam()">Add Exam</button>
+        <div id="exam-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- RUN ALLOCATION -->
+    <div class="card full-width">
+        <h2>🎯 Run Seat Allocation</h2>
+        <label>Exam ID</label>
+        <input type="number" id="alloc-exam-id" placeholder="e.g. 1">
+        <button class="secondary" onclick="runAllocation()">Run Allocation</button>
+        <div id="alloc-result" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- VIEW DATA -->
+    <div class="card full-width">
+        <h2>📊 View Current Data</h2>
+        <button class="danger" onclick="loadAllData()">Refresh All Data</button>
+        <div id="data-view"></div>
+    </div>
+
+</div>
+
+<script>
+const BASE_URL = "http://localhost:8080/api";
+
+function showResult(elementId, data, isError) {
+    const el = document.getElementById(elementId);
+    el.style.display = "block";
+    el.className = "result " + (isError ? "error" : "success");
+    el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+async function postJSON(url, body) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = text; }
+    if (!res.ok) throw data;
+    return data;
+}
+
+async function getJSON(url) {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) throw data;
+    return data;
+}
+
+async function addInstitution() {
+    try {
+        const data = await postJSON(`${BASE_URL}/institutions`, {
+            institutionName: document.getElementById("inst-name").value,
+            institutionType: document.getElementById("inst-type").value,
+            institutionCode: document.getElementById("inst-code").value
+        });
+        showResult("inst-result", data, false);
+    } catch (e) {
+        showResult("inst-result", e, true);
+    }
+}
+
+async function addStudent() {
+    const instId = document.getElementById("student-inst-id").value;
+    try {
+        const data = await postJSON(`${BASE_URL}/students/institution/${instId}`, {
+            name: document.getElementById("student-name").value,
+            dateOfBirth: document.getElementById("student-dob").value
+        });
+        showResult("student-result", data, false);
+    } catch (e) {
+        showResult("student-result", e, true);
+    }
+}
+
+async function addRoom() {
+    const instId = document.getElementById("room-inst-id").value;
+    try {
+        const data = await postJSON(`${BASE_URL}/rooms/institution/${instId}`, {
+            roomNumber: document.getElementById("room-number").value,
+            capacity: parseInt(document.getElementById("room-capacity").value)
+        });
+        showResult("room-result", data, false);
+    } catch (e) {
+        showResult("room-result", e, true);
+    }
+}
+
+async function addExam() {
+    try {
+        const data = await postJSON(`${BASE_URL}/exams`, {
+            examName: document.getElementById("exam-name").value,
+            examDate: document.getElementById("exam-date").value,
+            examTime: document.getElementById("exam-time").value
+        });
+        showResult("exam-result", data, false);
+    } catch (e) {
+        showResult("exam-result", e, true);
+    }
+}
+
+async function runAllocation() {
+    const examId = document.getElementById("alloc-exam-id").value;
+    try {
+        const res = await fetch(`${BASE_URL}/allocations/run/${examId}`, { method: "POST" });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = text; }
+        if (!res.ok) throw data;
+        showResult("alloc-result", data, false);
+    } catch (e) {
+        showResult("alloc-result", e, true);
+    }
+}
+
+async function loadAllData() {
+    const view = document.getElementById("data-view");
+    view.innerHTML = "Loading...";
+    try {
+        const [institutions, students, rooms, exams, allocations] = await Promise.all([
+            getJSON(`${BASE_URL}/institutions`),
+            getJSON(`${BASE_URL}/students`),
+            getJSON(`${BASE_URL}/rooms`),
+            getJSON(`${BASE_URL}/exams`),
+            getJSON(`${BASE_URL}/allocations`)
+        ]);
+
+        let html = "";
+
+        html += "<div class='list-view'><b>Institutions</b><table><tr><th>ID</th><th>Name</th><th>Code</th></tr>";
+        institutions.forEach(i => html += `<tr><td>${i.id}</td><td>${i.institutionName}</td><td>${i.institutionCode}</td></tr>`);
+        html += "</table></div>";
+
+        html += "<div class='list-view'><b>Students</b><table><tr><th>ID</th><th>Name</th><th>DOB</th><th>Hall Ticket</th></tr>";
+        students.forEach(s => html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.dateOfBirth}</td><td>${s.hallTicketNumber || "-"}</td></tr>`);
+        html += "</table></div>";
+
+        html += "<div class='list-view'><b>Rooms</b><table><tr><th>ID</th><th>Room #</th><th>Capacity</th></tr>";
+        rooms.forEach(r => html += `<tr><td>${r.id}</td><td>${r.roomNumber}</td><td>${r.capacity}</td></tr>`);
+        html += "</table></div>";
+
+        html += "<div class='list-view'><b>Exams</b><table><tr><th>ID</th><th>Name</th><th>Date</th><th>Time</th></tr>";
+        exams.forEach(e => html += `<tr><td>${e.id}</td><td>${e.examName}</td><td>${e.examDate}</td><td>${e.examTime}</td></tr>`);
+        html += "</table></div>";
+
+        html += "<div class='list-view'><b>Allocations</b><table><tr><th>Student</th><th>Room</th><th>Seat</th><th>Hall Ticket</th></tr>";
+        allocations.forEach(a => html += `<tr><td>${a.student.name}</td><td>${a.room.roomNumber}</td><td>${a.seatNumber}</td><td>${a.student.hallTicketNumber}</td></tr>`);
+        html += "</table></div>";
+
+        view.innerHTML = html;
+    } catch (e) {
+        view.innerHTML = "<div class='result error'>Failed to load data: " + JSON.stringify(e) + "</div>";
+    }
+}
+</script>
+
+</body>
+</html>
